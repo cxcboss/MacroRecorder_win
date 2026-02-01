@@ -13,7 +13,7 @@ namespace MacroRecorder.Models
 
     public abstract class InputAction
     {
-        public DateTime Timestamp { get; set; }
+        public TimeSpan Timestamp { get; set; }
         public abstract ActionType ActionType { get; }
     }
 

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using MacroRecorder.Models;
 using MacroRecorder.Services;
@@ -8,9 +9,8 @@ namespace MacroRecorder.ViewModels
 {
     public class MainViewModel : IDisposable
     {
-        private readonly InputHookService _hookService;
+        private readonly PythonRecorderService _recorderService;
         private readonly RecordingService _recordingService;
-        private readonly PlaybackService _playbackService;
         private readonly ObservableCollection<Recording> _recordings;
         
         private Recording? _currentRecording;
@@ -65,20 +65,19 @@ namespace MacroRecorder.ViewModels
         
         public MainViewModel()
         {
-            _hookService = new InputHookService();
+            _recorderService = new PythonRecorderService();
             _recordingService = new RecordingService();
-            _playbackService = new PlaybackService();
             _recordings = new ObservableCollection<Recording>();
             
-            StartRecordingCommand = new RelayCommand(_ => StartRecording());
-            StopRecordingCommand = new RelayCommand(_ => StopRecording());
-            PlayCommand = new RelayCommand(_ => PlayRecording(), _ => CanPlay());
-            StopPlaybackCommand = new RelayCommand(_ => StopPlayback());
+            StartRecordingCommand = new RelayCommand<object>(_ => StartRecording());
+            StopRecordingCommand = new RelayCommand<object>(_ => StopRecording());
+            PlayCommand = new RelayCommand<object>(_ => PlayRecording(), _ => CanPlay());
+            StopPlaybackCommand = new RelayCommand<object>(_ => StopPlayback());
             DeleteRecordingCommand = new RelayCommand<Recording>(DeleteRecording);
             RenameRecordingCommand = new RelayCommand<Recording>(RenameRecording);
-            RefreshRecordingsCommand = new RelayCommand(_ => LoadRecordings());
+            RefreshRecordingsCommand = new RelayCommand<object>(_ => LoadRecordings());
             
-            _hookService.OnRecordingStarted += () =>
+            _recorderService.OnRecordingStarted += () =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -87,7 +86,7 @@ namespace MacroRecorder.ViewModels
                 });
             };
             
-            _hookService.OnRecordingStopped += () =>
+            _recorderService.OnRecordingStopped += () =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -96,7 +95,7 @@ namespace MacroRecorder.ViewModels
                 });
             };
             
-            _playbackService.OnPlaybackStarted += () =>
+            _recorderService.OnPlaybackStarted += () =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -105,7 +104,7 @@ namespace MacroRecorder.ViewModels
                 });
             };
             
-            _playbackService.OnPlaybackStopped += () =>
+            _recorderService.OnPlaybackStopped += () =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -121,7 +120,7 @@ namespace MacroRecorder.ViewModels
         {
             try
             {
-                _hookService.StartRecording();
+                _recorderService.StartRecording();
             }
             catch (Exception ex)
             {
@@ -131,14 +130,14 @@ namespace MacroRecorder.ViewModels
         
         private void StopRecording()
         {
-            var actions = _hookService.StopRecording();
+            _recorderService.StopRecording();
             
-            if (actions.Count > 0)
+            if (_recorderService.RecordedActions.Count > 0)
             {
                 var recording = new Recording
                 {
                     Name = $"录制 {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
-                    Actions = actions
+                    Actions = _recorderService.RecordedActions.ToList()
                 };
                 
                 _recordingService.SaveRecording(recording);
@@ -153,11 +152,7 @@ namespace MacroRecorder.ViewModels
             
             try
             {
-                await _playbackService.PlayAsync(
-                    CurrentRecording, 
-                    _repeatCount, 
-                    _infiniteLoop
-                );
+                _recorderService.PlayActions(CurrentRecording.Actions);
             }
             catch (Exception ex)
             {
@@ -172,7 +167,7 @@ namespace MacroRecorder.ViewModels
         
         private void StopPlayback()
         {
-            _playbackService.Stop();
+            _recorderService.StopPlayback();
         }
         
         private void DeleteRecording(Recording? recording)
@@ -247,25 +242,24 @@ namespace MacroRecorder.ViewModels
         
         public void Dispose()
         {
-            _hookService.Dispose();
-            _playbackService.Dispose();
+            _recorderService.Dispose();
         }
     }
     
-    public class RelayCommand : ICommand
+    public class RelayCommand<T> : ICommand
     {
-        private readonly Action<object?> _execute;
-        private readonly Func<object?, bool>? _canExecute;
+        private readonly Action<T?> _execute;
+        private readonly Func<T?, bool>? _canExecute;
         
-        public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
+        public RelayCommand(Action<T?> execute, Func<T?, bool>? canExecute = null)
         {
             _execute = execute;
             _canExecute = canExecute;
         }
         
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
+        public bool CanExecute(object? parameter) => _canExecute?.Invoke((T?)parameter) ?? true;
         
-        public void Execute(object? parameter) => _execute(parameter);
+        public void Execute(object? parameter) => _execute((T?)parameter);
         
         public event EventHandler? CanExecuteChanged
         {

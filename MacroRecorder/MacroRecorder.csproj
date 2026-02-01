@@ -7,8 +7,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>MacroRecorder</RootNamespace>
-    <ApplicationIcon>icon.png</ApplicationIcon>
-    <AssemblyName>MacroRecorder</AssemblyName>
     <Version>1.0.0</Version>
     <Authors>MacroRecorder</Authors>
     <Description>鼠标键盘行为录制器</Description>
@@ -20,6 +18,12 @@
 
   <ItemGroup>
     <None Update="icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="recorder.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="player.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

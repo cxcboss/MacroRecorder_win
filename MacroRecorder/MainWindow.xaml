@@ -111,7 +111,7 @@
                     <TextBlock Text="当前选中录制" FontWeight="Bold" Margin="0,0,0,5"/>
                     <TextBlock Text="{Binding CurrentRecording.Name, TargetNullValue=未选中}" 
                                Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{Binding CurrentRecording.TotalDuration, StringFormat=时长: mm\\:ss, TargetNullValue=}" 
+                    <TextBlock Text="{Binding CurrentRecording.TotalDuration, StringFormat={}时长: mm\\:ss}" 
                                Foreground="{StaticResource TextSecondaryBrush}"/>
                     
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">

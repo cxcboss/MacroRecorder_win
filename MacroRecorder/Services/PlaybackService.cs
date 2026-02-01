@@ -87,7 +87,7 @@ namespace MacroRecorder.Services
             if (actions.Count == 0) return;
             
             var baseTime = actions.Min(a => a.Timestamp);
-            DateTime? lastActionTime = null;
+            TimeSpan? lastActionTime = null;
             
             foreach (var action in actions)
             {
@@ -96,7 +96,7 @@ namespace MacroRecorder.Services
                     break;
                 }
                 
-                var actionTime = baseTime == DateTime.MinValue ? action.Timestamp : action.Timestamp - baseTime;
+                var actionTime = action.Timestamp - baseTime;
                 
                 if (lastActionTime.HasValue)
                 {
