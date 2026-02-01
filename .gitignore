@@ -1,0 +1,10 @@
+.DS_Store
+*.user
+*.vs
+bin/
+obj/
+publish/
+*.log
+*.suo
+*.cache
+.vscode/
